@@ -1,5 +1,5 @@
 
-from fastapi import Depends, APIRouter, File, UploadFile, status, HTTPException
+from fastapi import Depends, APIRouter, File, UploadFile, status, HTTPException, Query
 from app.imagekit import upload_to_imagekit, delete_from_imagekit
 from sqlalchemy import select, update, delete, insert
 from sqlalchemy.orm import selectinload
@@ -10,12 +10,17 @@ from app.schemas.room import RoomCreate, RoomMemberResponse, RoomResponse
 from app.models.user import User
 from app.models.room import Room, RoomMember, Role
 from app.models.message import Message
-from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details
+from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details, search_for_rooms
 from uuid import UUID
 from app.ai_service import summarize_chat_history
 
 
 router = APIRouter(prefix="/room",tags=["room"])
+@router.get("/search/{room_name}",status_code=status.HTTP_200_OK,response_model=list[RoomResponse])
+async def search_rooms(room_name: str,db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user),limit: int = Query(10, ge=1,le=100),offset: int = Query(0, ge=0)):
+    rooms = await search_for_rooms(room_name,db,limit,offset)
+    return rooms
+    
 
 @router.post("/create_room",response_model=RoomResponse,status_code=status.HTTP_201_CREATED)
 async def create_room(room:RoomCreate,db:AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -137,7 +142,7 @@ async def remove_profile_picture(
     room.profile_id = None
     room.profile_url = None
     await db.commit()
-    
+
 @router.get("/{room_id}/summary",status_code=status.HTTP_200_OK)
 async def get_chat_summary(room_id:UUID,db:AsyncSession=Depends(get_db),current_user:User = Depends(get_current_user)):
     membership = await get_membership(db,room_id,current_user.id)
