@@ -1,0 +1,14 @@
+
+.venv/
+.uv/
+
+.env
+app/.env
+
+__pycache__/
+*.pyc
+
+.vscode/
+
+# Build artifacts
+dist/
