@@ -40,4 +40,35 @@ chat/
 ├── .env                    # Environment secrets
 ├── pyproject.toml          # Project dependencies (uv)
 └── uv.lock                 # Lockfile for consistent environments
-{content: }
+```
+## Getting Started
+
+### 1. Clone & Install
+```bash
+git clone https://github.com/hrithvikcodes/realtime-room-chat.git
+cd realtime-room-chat
+uv sync
+```
+### 2. Environment Setup
+Since this project uses external services, you must create a `.env` file inside the `app/` directory:
+
+```text
+DATABASE_URL=postgresql://user:password@localhost/dbname
+SECRET_KEY=your_jwt_secret_key
+GEMINI_API_KEY=your_google_gemini_key
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io
+```
+### 3. Run the Application
+```bash
+uv run fastapi dev app/main.py
+```
+### 4. Once the Server is running, we can explore the interactive docs at:
+* **Swagger UI**: http://localhost:8000/docs
+* **ReDoc** : http://localhost:8000/redoc
+
+---
+Developed by [Hrithvik](https://github.com/hrithvikcodes)
+
+
