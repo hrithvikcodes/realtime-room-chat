@@ -10,6 +10,8 @@ This is a **FastAPI** backend for a realtime, room-based communication. It allow
 *   **Secure Auth** : JWT Based Authentication for user safety.
 *   **Global Discovery**  : Search and join any existing chat room across the platform.
 *   **Room Management** : Admin led rooms with capabilities to **kick members**, add room profile picture, update room details like description, name.
+*    **Storage Optimization**: Automatic cleanup of old media; when a user updates or deletes a media file, the previous file is deleted from **ImageKit** storage to save space.
+
 *   **Structured Backend** : Modular architecture with dedicated routers, models, and CRUD layers for scalability.
 
 ## Tech Stack
@@ -70,5 +72,6 @@ uv run fastapi dev app/main.py
 
 ---
 Developed by [Hrithvik](https://github.com/hrithvikcodes)
+
 
 
