@@ -14,6 +14,7 @@ async def get_user_by_id(db:AsyncSession, user_id: int):
     return result.scalar_one_or_none()
 
 async def create_user(db:AsyncSession, user_data: dict):
+    
     user_data["hashed_password"] = hash_password(user_data.pop("password"))
 
     stmt = insert(User).values(**user_data).returning(User)
