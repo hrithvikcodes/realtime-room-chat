@@ -19,7 +19,7 @@ class Room(Base):
         primary_key=True,
         default= uuid.uuid4,
     )
-    name: Mapped[str] = mapped_column(String(20), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[Optional[str]] = mapped_column(String(255))
     profile_url: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     profile_id: Mapped[Optional[str]] = mapped_column(String,nullable=True)
@@ -29,7 +29,7 @@ class Room(Base):
         ForeignKey("users.id"),
         nullable= False
     )
-    messages = relationship("Message",back_populates="room")
+    messages = relationship("Message",back_populates="room",cascade="all, delete")
     #items = relationship("RoomMember", cascade="all, delete-orphan")
 
 class RoomMember(Base):
@@ -51,7 +51,8 @@ class RoomMember(Base):
 
     room_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("rooms.id")
+        ForeignKey("rooms.id"),
+        nullable=False
     )
 
     joined_at: Mapped[datetime] = mapped_column(DateTime,server_default=func.now(),nullable=False)

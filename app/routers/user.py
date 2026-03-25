@@ -37,11 +37,12 @@ async def update_profile_pic(
         await delete_from_imagekit(current_user.profile_pic_id)
     
     new_url, new_id = await upload_to_imagekit(file)
-
+    db.add(current_user)
     current_user.profile_pic_url = new_url
     current_user.profile_pic_id = new_id
+    
     await db.commit()
-
+    await db.refresh(current_user)
     return {"url": new_url}
 
 @router.delete("/profile/picture", status_code=status.HTTP_204_NO_CONTENT)

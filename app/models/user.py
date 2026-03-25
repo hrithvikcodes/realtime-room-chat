@@ -17,7 +17,7 @@ class User(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),primary_key=True,default=uuid.uuid4
     )
-    email: Mapped[str] = mapped_column(String(255),nullable=False,unique = True)
+    email: Mapped[str] = mapped_column(String(255),nullable=False,unique = True,index=True)
     name: Mapped[str] = mapped_column(String(255),nullable=False)
     profile_pic_url: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     profile_pic_id: Mapped[Optional[str]] = mapped_column(String,nullable=True)

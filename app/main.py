@@ -7,13 +7,10 @@ from app.routers import message
 from app.routers import websocket
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Create tables
-    async with db.engine.begin() as conn:
-        await conn.run_sync(db.Base.metadata.create_all)
     
-    yield  # The app runs while this is paused
+    yield  # 
     
-    #  Shutdown: Clean up if needed 
+    #  Shutdown
     await db.engine.dispose()
 
 app = FastAPI(lifespan=lifespan)

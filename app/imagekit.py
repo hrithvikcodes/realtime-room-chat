@@ -12,11 +12,11 @@ imagekit = AsyncImageKit(
 async def upload_to_imagekit(file: UploadFile):
     MAX_SIZE = 25*1024*1024
     if file.size and file.size >MAX_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="File too large")
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail="File  too large")
     
     file_bytes = await file.read()
     if len(file_bytes)> MAX_SIZE:
-        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail= "File too large")
+        raise HTTPException(status_code=status.HTTP_413_CONTENT_TOO_LARGE, detail= "File  too large")
     result = await imagekit.files.upload(
         file=file_bytes,
         file_name= str(file.filename),
