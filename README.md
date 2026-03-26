@@ -3,7 +3,7 @@
 A fully deployed **FastAPI backend** for realtime, room-based communication with **JWT authentication**.  
 Features include **room discovery**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
 
-🔗 **Live API / Demo**: [https://room-chat-p7bo.onrender.com/docs](https://room-chat-p7bo.onrender.com/docs)
+
 
 ## Key Features
 
