@@ -23,28 +23,32 @@ Features include **room discovery**, **interactive messaging**, **ImageKit.io** 
 * **Package Manager** : uv
 * **AI Engine** : Google Gemini 2.5
 * **Media Hosting** : ImageKit.io
-* **Database**: SQLALchemy / PostgreSQL
+* **Database**: SQLALchemy + PostgreSQL
 * **Realtime** : WebSockets
 
 ## 📂 Project Structure
 
 ```text
 chat/
-└── app/
-    ├── crud/               # DB operations (messages.py, rooms.py, users.py)
-    ├── models/             # DB tables (message.py, room.py, user.py)
-    ├── routers/            # API endpoints (message.py, room.py, user.py, websocket.py)
-    ├── schemas/            # Pydantic validation (message.py, room.py, user.py)
-    ├── ai_service.py       # Gemini 2.5 summary logic
-    ├── auth.py             # Authentication handlers
-    ├── db.py               # Database engine & session setup
-    ├── imagekit.py         # Media upload configuration
-    ├── main.py             # FastAPI app initialization
-    ├── security.py         # Password hashing & JWT logic
-    └── websocket_manager.py # WebSocket connection logic
-├── .env                    # Environment secrets
-├── pyproject.toml          # Project dependencies (uv)
-└── uv.lock                 # Lockfile for consistent environments
+├── migrations/            
+│   ├── versions/
+│   └── env.py
+├── app/
+│   ├── crud/
+│   ├── models/
+│   ├── routers/
+│   ├── schemas/
+│   ├── ai_service.py
+│   ├── auth.py
+│   ├── db.py
+│   ├── imagekit.py
+│   ├── main.py
+│   ├── security.py
+│   └── websocket_manager.py
+├── alembic.ini            
+├── .env
+├── pyproject.toml
+└── uv.lock
 ```
 ## Getting Started
 
@@ -58,12 +62,15 @@ uv sync
 Since this project uses external services, you must create a `.env` file inside the `app/` directory:
 
 ```text
-DATABASE_URL=postgresql://user:password@localhost/dbname
-SECRET_KEY=your_jwt_secret_key
-GEMINI_API_KEY=your_google_gemini_key
-IMAGEKIT_PUBLIC_KEY=your_public_key
-IMAGEKIT_PRIVATE_KEY=your_private_key
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io
+You can refer to `.env.example` for required variables.
+```
+## Database Setup (Alembic)
+
+This project uses Alembic for database migrations. Tables are NOT created automatically.
+
+### Run migrations
+```bash
+alembic upgrade head
 ```
 ### 3. Run the Application
 ```bash
@@ -74,7 +81,7 @@ uv run fastapi dev app/main.py
 * **ReDoc** : http://localhost:8000/redoc
 
 ---
-Developed by [Hrithvik](https://github.com/hrithvikcodes)
+Developed by [Hrithvik](https://github.com/hrithvikcodes) ♡
 
 
 
