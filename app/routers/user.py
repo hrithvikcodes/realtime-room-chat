@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File, Form
+from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File
 from fastapi.security import OAuth2PasswordRequestForm
+from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.user import User
+from app.models.refresh_token import RefreshToken
+from datetime import datetime, timedelta
 from app.db import get_db
-from app.auth import create_user_token, get_current_user
+from app.auth import create_access_token,create_refresh_token, get_current_user, get_user_from_token, REFRESH_TOKEN_TIME
 from app.security import verify_password
-from app.schemas.user import CreateUser
+from app.schemas.user import CreateUser, RefreshRequest
 from app.crud.users import get_user_by_email, get_user_by_id, create_user
 from app.imagekit import delete_from_imagekit, upload_to_imagekit
 router = APIRouter(prefix="/auth",tags=["auth"])
@@ -20,13 +23,61 @@ async def signup(data: CreateUser, db: AsyncSession = Depends(get_db)):
 
 @router.post("/login",status_code=status.HTTP_200_OK)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession = Depends(get_db)):
-    user = await get_user_by_email(db, form_data.username)
+    user  : User | None =await get_user_by_email(db, form_data.username)
     if not user or not verify_password(form_data.password,user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
-    
-    token = await create_user_token(data={"user_id" : str(user.id)})
-    return {"access_token": token, "token_type": "bearer"}
+    assert user is not None
 
+    await db.execute(delete(RefreshToken).where(RefreshToken.user_id == user.id))
+    access_token = await create_access_token(str(user.id)) 
+    refresh_token = await create_refresh_token(str(user.id)) 
+
+    db_token = RefreshToken(
+        user_id = user.id,
+        token = refresh_token,
+        expires_at = datetime.now() + timedelta(days=REFRESH_TOKEN_TIME)
+    )
+    db.add(db_token)
+    await db.commit()
+
+    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+
+@router.post("/refresh",status_code=status.HTTP_200_OK)
+async def refresh(data: RefreshRequest,db: AsyncSession = Depends(get_db)):
+    check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
+    result = await db.execute(check_token)
+    stored_token = result.scalar_one_or_none()
+    if not stored_token :
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    if stored_token.expires_at < datetime.now():
+        await db.delete(stored_token)
+        await db.commit()
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token expired")
+    
+    try:
+        user = await get_user_from_token(data.refresh_token, "refresh",db)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+    await db.delete(stored_token)
+    
+    new_refresh_token = await create_refresh_token(str(user.id))
+    db.add(RefreshToken(
+        user_id = user.id,
+        token = new_refresh_token,
+        expires_at = datetime.now() + timedelta(days=REFRESH_TOKEN_TIME)
+    ))
+    await db.commit()
+    new_access_token = await create_access_token(str(user.id))
+    return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
+@router.post("/logout",status_code=status.HTTP_200_OK)  
+async def logout(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
+    check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
+    result = await db.execute(check_token)
+    stored_token = result.scalar_one_or_none()
+    if stored_token:
+        await db.delete(stored_token)
+        await db.commit()
+    return {"detail": "Logged out successfully"}
 @router.patch("/profile/picture")
 async def update_profile_pic(
     file: UploadFile = File(...),

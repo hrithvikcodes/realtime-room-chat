@@ -9,6 +9,8 @@ from app.db import Base
 from app.models.message import Message
 from app.models.room import Room
 from app.models.user import User
+from app.models.refresh_token import RefreshToken
+from app.models.user import User
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config

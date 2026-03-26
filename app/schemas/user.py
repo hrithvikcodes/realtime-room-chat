@@ -10,3 +10,5 @@ class CreateUser(BaseModel):
 
 class LoginUser(CreateUser):
     pass
+class RefreshRequest(BaseModel):
+    refresh_token: str
