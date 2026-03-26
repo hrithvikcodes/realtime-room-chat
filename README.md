@@ -1,6 +1,9 @@
-# realtime-room-chat
 
-This is a **FastAPI** backend for a realtime, room-based communication. It allows seamless user authentication, room discovery, and interactive messaging. It features ImageKit integration for media sharing, updating profile pictures and uses Gemini 2.5 to generate intelligent chat summaries, helping new members catch up on the context easily.
+# Realtime Room Chat API 🚀
+A fully deployed **FastAPI backend** for realtime, room-based communication with **JWT authentication**.  
+Features include **room discovery**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
+
+🔗 **Live API / Demo**: [https://room-chat-p7bo.onrender.com/docs](https://room-chat-p7bo.onrender.com/docs)
 
 ## Key Features
 
@@ -72,6 +75,7 @@ uv run fastapi dev app/main.py
 
 ---
 Developed by [Hrithvik](https://github.com/hrithvikcodes)
+
 
 
 
