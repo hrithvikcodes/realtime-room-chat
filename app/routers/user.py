@@ -69,6 +69,9 @@ async def refresh(data: RefreshRequest,db: AsyncSession = Depends(get_db)):
     await db.commit()
     new_access_token = await create_access_token(str(user.id))
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
+    
+   
+
 @router.post("/logout",status_code=status.HTTP_200_OK)  
 async def logout(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
     check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
