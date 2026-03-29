@@ -45,13 +45,14 @@ async def get_user_from_token(token: str, expected_type : str, db: AsyncSession)
     except JWTError:
         raise ValueError("Couldnot validate credentials")
     
-    async with async_session_maker() as db:
-        user_id = UUID(payload.get("user_id"))
-        stmt = select(User).where(User.id == user_id)
-        result = await db.execute(stmt)
-        user = result.scalar_one_or_none()
+    
+    user_id_str = payload.get("user_id")
+    user_id = UUID(user_id_str)
+    stmt = select(User).where(User.id == user_id)
+    result = await db.execute(stmt)
+    user = result.scalar_one_or_none()
     if not user:
-        raise ValueError("User not Found")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid token: User not found")
     return user
 
 async def get_current_user(token: str = Depends(oauth2_scheme),db:AsyncSession = Depends(get_db)):
