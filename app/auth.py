@@ -34,9 +34,12 @@ async def create_refresh_token(user_id: str):
 async def get_user_from_token(token: str, expected_type : str, db: AsyncSession) -> User:
     try:
         payload = jwt.decode(token, SECRET_KEY,algorithms=[ALGORITHM])
+        print("PAYLOAD:", payload)
+
         if payload.get("type") != expected_type:
             raise ValueError("Invalid token type")
         user_id = UUID(payload.get("user_id"))
+        print("USER ID:", user_id)
         if user_id is None:
             raise ValueError("Invalid token: No user_id")
     except JWTError:
