@@ -33,6 +33,6 @@ class Message(Base):
     media_id: Mapped[Optional[str]] = mapped_column(String,nullable=True)
     content: Mapped[str] = mapped_column(Text,nullable=False)
     posted_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(),index=True)
-    updated_at: Mapped[datetime] = mapped_column(DateTime,server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(DateTime,server_default=func.now(), onupdate=func.now(),nullable=False)
     room = relationship("Room", back_populates="messages")
     sender = relationship("User",back_populates="messages")
