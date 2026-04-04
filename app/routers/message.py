@@ -9,6 +9,7 @@ from app.models.user import User
 from uuid import UUID
 from fastapi.concurrency import run_in_threadpool
 from app.websocket_manager import manager
+from app.chat_cache import cache_message, get_cached_messages
 from app.crud.messages import (
     send_message,
     get_recent_messages,
@@ -34,18 +35,31 @@ async def send_messages(room_id:UUID,content:str= Form(...),file:UploadFile=File
     message = await send_message(room_id,current_user.id,db,content,file)
     if not message:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Message not found")
-    await manager.broadcast_to_room(room_id,{
+    message_data = {
         "sender": current_user.name,
         "content": content,
-        "media_url": message.media_url,
-    })
+        "created_at": str(message.posted_at),
+        "media_url": message.media_url
+    }
+    try:
+        await manager.broadcast_to_room(room_id, message_data)
+        
+    except Exception as e:
+        print(f"Error occurred while broadcasting message: {e}")
+    try:
+        await cache_message(room_id, message_data)
+    except Exception as e:   
+        print(f"Error occurred while caching message: {e}")
     return message
 
-@router.get("/{room_id}/recent",response_model=list[MessageResponse],status_code=status.HTTP_200_OK)
+@router.get("/{room_id}/recent",status_code=status.HTTP_200_OK)
 async def recent_messages(room_id: UUID,db: AsyncSession = Depends(get_db),current_user: User= Depends(get_current_user),limit: int = Query(20, ge=1, le=100),offset: int = Query(0, ge= 0)):
     membership = await get_membership(db,room_id,current_user.id)
     if not membership:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Authentication failed")
+    cached = await get_cached_messages(room_id)
+    if cached:
+        return cached
     messages = await get_recent_messages(room_id,db,limit,offset)
     if not messages:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Messages not found")

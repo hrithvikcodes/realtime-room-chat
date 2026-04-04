@@ -1,19 +1,19 @@
 
 from fastapi import Depends, APIRouter, File, UploadFile, status, HTTPException, Query
 from app.imagekit import upload_to_imagekit, delete_from_imagekit
-from sqlalchemy import select, update, delete, insert
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.auth import get_current_user
 from app.db import get_db
 from app.schemas.room import RoomCreate, RoomMemberResponse, RoomResponse
 from app.models.user import User
-from app.models.room import Room, RoomMember, Role
+from app.models.room import  Role
 from app.models.message import Message
 from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details, search_for_rooms
 from uuid import UUID
 from app.ai_service import summarize_chat_history
-
+from app.chat_cache import format_messages_for_ai
 
 router = APIRouter(prefix="/room",tags=["room"])
 @router.get("/search/{room_name}",status_code=status.HTTP_200_OK,response_model=list[RoomResponse])
@@ -143,24 +143,18 @@ async def remove_profile_picture(
     room.profile_url = None
     await db.commit()
 
-@router.get("/{room_id}/summary",status_code=status.HTTP_200_OK)
-async def get_chat_summary(room_id:UUID,db:AsyncSession=Depends(get_db),current_user:User = Depends(get_current_user)):
-    membership = await get_membership(db,room_id,current_user.id)
+@router.get("/{room_id}/summary", status_code=status.HTTP_200_OK)
+async def get_chat_summary(room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    membership = await get_membership(db, room_id, current_user.id)
     if not membership:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Authentication failed")
-    messages_query = select(Message).where(Message.room_id == membership.room_id).order_by(Message.posted_at.desc()).limit(100).options(selectinload(Message.sender))
-    result = await db.execute(messages_query)
-    messages = result.scalars().all()
-    if not messages:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Authentication failed")
+
+    formatted_messages = await format_messages_for_ai(room_id)
+
+    if not formatted_messages:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No conversation found")
-    
-    formatted_messages = [
-        f"{msg.sender.name}: {msg.content}"
-        for msg in reversed(messages)
-    ]
 
     ai_summary = await summarize_chat_history(formatted_messages)
-
     return {"summary": ai_summary}
 
 
