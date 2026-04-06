@@ -2,7 +2,7 @@
 A fully deployed **FastAPI backend** for realtime, room-based communication with **JWT authentication**.  
 Features include **room discovery**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), **Redis caching** for fast message delivery, and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
 
-Live URL : https://your-url.up.railway.app/docs
+Live URL : https://realtime-room-chat-production.up.railway.app/docs
 
 ## Key Features
 *   **Real time Messaging** : Bi-directional communication using WebSockets.
