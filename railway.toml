@@ -1,2 +1,5 @@
+[build]
+builder = "DOCKERFILE"
+
 [deploy]
-startCommand = "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+startCommand = "uv run alembic upgrade head && uv run uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --log-level debug"
