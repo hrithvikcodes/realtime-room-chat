@@ -10,7 +10,7 @@ from app.schemas.room import RoomCreate, RoomMemberResponse, RoomResponse
 from app.models.user import User
 from app.models.room import  Role
 from app.models.message import Message
-from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details, search_for_rooms
+from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details, search_for_rooms, get_room_by_invite_code,regenerate_invite_code
 from uuid import UUID
 from app.ai_service import summarize_chat_history
 from app.chat_cache import format_messages_for_ai
@@ -37,12 +37,43 @@ async def update_room_data(room_id: UUID,data: RoomCreate,db:AsyncSession = Depe
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room not found")
     return updated_room
 @router.post("/{room_id}/join",status_code=status.HTTP_200_OK)
-async def join_room(room_id: UUID,db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
+async def join_room(room_id: UUID,invite_code: str = Query(...),db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
+    room = await get_room_by_id(db,room_id)
+    if not room:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room doesn't exist")
+    if room.invite_code != invite_code:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid invite code")
+    
     membership = await get_membership(db, room_id, current_user.id)
     if membership:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Already a member")
     return await join_db_room(db, current_user.id, room_id)
-
+@router.get("/{room_id}/invite",status_code=status.HTTP_200_OK)
+async def get_invite_code(room_id: UUID,db:AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    room = await get_room_by_id(db,room_id)
+    if not room:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room not found ")
+    membership = await get_membership(db, room_id, current_user.id)
+    if not membership:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Authentication failed")
+    return {
+        "invite_code": room.invite_code
+    }
+@router.post("/{room_id}/invite/regenerate",status_code=status.HTTP_201_CREATED)
+async def regenerate_invite(room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    room = await get_room_by_id(db,room_id)
+    if not room:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room not found ")
+    membership = await get_membership(db,room_id,current_user.id)
+    if not membership:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Authentication failed")
+    if membership.role != Role.ADMIN:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Only Admin can regenerate invite code.")
+    room_invite_code = await regenerate_invite_code(db, room_id)
+    return {
+        "invite_code": room_invite_code.invite_code
+    }
+                                
 @router.get("/my-rooms",response_model=list[RoomResponse],status_code=status.HTTP_200_OK)
 async def my_rooms(db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
     return await get_my_db_rooms(db,current_user.id)

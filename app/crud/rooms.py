@@ -1,4 +1,5 @@
 from app.imagekit import upload_to_imagekit
+import secrets
 from sqlalchemy import delete, insert,update, select, desc
 from app.models.room import Role, RoomMember
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -42,6 +43,24 @@ async def join_db_room(db:AsyncSession,user_id : UUID,room_id: UUID):
     await db.commit()
     return {"msg": "Joined Room Successfully"}
 
+async def get_room_by_invite_code(db:AsyncSession, invite_code:str):
+    room_query = select(Room).where(Room.invite_code == invite_code)
+    result = await db.execute(room_query)
+    room = result.scalar_one_or_none()
+    return room
+
+async def regenerate_invite_code(db:AsyncSession, room_id: UUID):
+    print(f"Looking for room_id: {room_id}, type: {type(room_id)}")
+    
+    room = await get_room_by_id(db, room_id)
+    print(f"Found room: {room}")
+    if room:
+        room.invite_code = secrets.token_urlsafe(16)
+        await db.commit()
+        await db.refresh(room)
+    return room
+    
+
 async def get_room_by_id(db:AsyncSession, room_id:UUID):
     room_query = select(Room).where(Room.id == room_id)
     result = await db.execute(room_query)
@@ -74,7 +93,7 @@ async def leave_db_room(db:AsyncSession, membership: RoomMember):
     await db.commit()
 
 async def get_membership(db: AsyncSession, room_id: UUID, user_id: UUID):
-    """Fetches a membership record if it exists."""
+    """"""
     stmt = select(RoomMember).where(
         RoomMember.room_id == room_id, 
         RoomMember.user_id == user_id

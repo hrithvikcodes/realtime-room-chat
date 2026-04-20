@@ -15,7 +15,6 @@ class RoomResponse(BaseModel):
     profile_id: Optional[str] = None
     created_at: datetime
     created_by: UUID
-
     model_config = ConfigDict(from_attributes=True) #SQLAlchemy to Pydantc conversion
 
 class AddRoomMember(BaseModel):
