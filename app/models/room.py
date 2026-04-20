@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional
 from sqlalchemy import Enum as SQLEnum
 from enum import Enum
-
+import secrets
 class Role(str,Enum):
     ADMIN = "admin"
     MEMBER = "member"
@@ -29,6 +29,7 @@ class Room(Base):
         ForeignKey("users.id"),
         nullable= False
     )
+    invite_code: Mapped[str] = mapped_column(String, unique=True, nullable=False, default=lambda: secrets.token_urlsafe(16))    
     messages = relationship("Message",back_populates="room",cascade="all, delete")
     #items = relationship("RoomMember", cascade="all, delete-orphan")
 
