@@ -66,16 +66,8 @@ async def get_room_by_id(db:AsyncSession, room_id:UUID):
     result = await db.execute(room_query)
     room = result.scalar_one_or_none()
     return room
-async def list_rooms_in_db(db:AsyncSession):
-    query = select(Room).order_by(desc(Room.created_at))
-    result = await db.execute(query)
-    rooms = result.scalars().all()
-    return rooms
-async def search_for_rooms(room_name:str,db: AsyncSession,limit: int,offset: int):
-    query = select(Room).where(Room.name.ilike(f"%{room_name}%")).limit(limit).offset(offset)
-    result = await db.execute(query)
-    rooms = result.scalars().all()
-    return rooms
+
+
 async def get_db_room_members(db:AsyncSession,room_id: UUID):
     query = select(RoomMember).where(RoomMember.room_id == room_id).options(selectinload(RoomMember.user))
     result = await db.execute(query)

@@ -16,10 +16,7 @@ from app.ai_service import summarize_chat_history
 from app.chat_cache import format_messages_for_ai
 
 router = APIRouter(prefix="/room",tags=["room"])
-@router.get("/search/{room_name}",status_code=status.HTTP_200_OK,response_model=list[RoomResponse])
-async def search_rooms(room_name: str,db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user),limit: int = Query(10, ge=1,le=100),offset: int = Query(0, ge=0)):
-    rooms = await search_for_rooms(room_name,db,limit,offset)
-    return rooms
+
     
 
 @router.post("/create_room",response_model=RoomResponse,status_code=status.HTTP_201_CREATED)
@@ -59,7 +56,7 @@ async def get_invite_code(room_id: UUID,db:AsyncSession = Depends(get_db), curre
     return {
         "invite_code": room.invite_code
     }
-@router.post("/{room_id}/invite/regenerate",status_code=status.HTTP_201_CREATED)
+@router.put("/{room_id}/invite/regenerate",status_code=status.HTTP_201_CREATED)
 async def regenerate_invite(room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     room = await get_room_by_id(db,room_id)
     if not room:
@@ -71,7 +68,7 @@ async def regenerate_invite(room_id: UUID, db: AsyncSession = Depends(get_db), c
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Only Admin can regenerate invite code.")
     room_invite_code = await regenerate_invite_code(db, room_id)
     return {
-        "invite_code": room_invite_code.invite_code
+        "invite_code": room_invite_code.invite_code 
     }
                                 
 @router.get("/my-rooms",response_model=list[RoomResponse],status_code=status.HTTP_200_OK)
@@ -84,10 +81,6 @@ async def room_members(room_id:UUID,db:AsyncSession = Depends(get_db),current_us
     if not membership:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Authentication Failed")
     return await get_db_room_members(db,room_id)
-
-@router.get("/",response_model=list[RoomResponse])
-async def list_all_rooms(db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
-    return await list_rooms_in_db(db)
 
 
 @router.delete("/{room_id}/leave", status_code=status.HTTP_204_NO_CONTENT)
