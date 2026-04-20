@@ -10,7 +10,7 @@ from app.schemas.room import RoomCreate, RoomMemberResponse, RoomResponse
 from app.models.user import User
 from app.models.room import  Role
 from app.models.message import Message
-from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id, list_rooms_in_db, update_room_details, search_for_rooms, get_room_by_invite_code,regenerate_invite_code
+from app.crud.rooms import create_db_room, join_db_room, get_membership,delete_db_room,leave_db_room,remove_room_member, get_db_room_members, get_my_db_rooms, get_room_by_id,  update_room_details,  get_room_by_invite_code,regenerate_invite_code
 from uuid import UUID
 from app.ai_service import summarize_chat_history
 from app.chat_cache import format_messages_for_ai
