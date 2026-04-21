@@ -1,6 +1,6 @@
 # Realtime Room Chat API 🚀
 A fully deployed **FastAPI backend** for realtime, room-based communication with **JWT authentication**.  
-Features include **room discovery**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), **Redis caching** for fast message delivery, and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
+Features include **invite-only room joining**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), **Redis caching** for fast message delivery, and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
 
 Live URL : https://realtime-room-chat-production.up.railway.app/docs
 
@@ -10,15 +10,16 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 *   **Message Caching** : Last 100 messages per room cached in **Redis** for fast retrieval and AI context.
 *   **Media Management** : Profile pictures and chat media handled via **ImageKit**
 *   **Secure Auth** : JWT Based Authentication with refresh tokens saved in the database, rotated on each use and invalidated on logout which prevents reuse attacks.
-*   **Global Discovery**  : Search and join any existing chat room across the platform.
+*   **Invite-Only Rooms**: Rooms are protected by a unique invite code. Only users with the code can join. Admins can regenerate the code at any time to invalidate old links.
 *   **Room Management** : Admin led rooms with capabilities to **kick members**, add room profile picture, update room details like description and name.
 *   **Storage Optimization**: Automatic cleanup of old media; when a user updates or deletes a media file, the previous file is deleted from **ImageKit** storage to save space.
+*   **Structured JSON Logging** : Production grade logging across all layers (auth,rooms,messages,Websockets,HTTP middleware) with structured JSON output for easy querying.
 *   **Structured Backend** : Modular architecture with dedicated routers, models, and CRUD layers for scalability.
 
 ## Tech Stack
 * **Framework** : FastAPI
 * **Package Manager** : uv
-* **AI Engine** : Google Gemini 2.5
+* **AI Engine** : Google Gemini 2.5 API
 * **Media Hosting** : ImageKit.io
 * **Database** : SQLAlchemy + PostgreSQL
 * **Cache** : Redis
@@ -29,7 +30,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 ## 📂 Project Structure
 ```text
 chat/
-├── migrations/            
+├── migrations/
 │   ├── versions/
 │   └── env.py
 ├── app/
@@ -42,7 +43,9 @@ chat/
 │   ├── chat_cache.py
 │   ├── db.py
 │   ├── imagekit.py
+│   ├── logger.py
 │   ├── main.py
+│   ├── middleware.py
 │   ├── redis_client.py
 │   ├── security.py
 │   └── websocket_manager.py
