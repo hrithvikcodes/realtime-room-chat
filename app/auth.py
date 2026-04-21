@@ -9,13 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from app.models.user import User
 from uuid import UUID
+from app.logger import get_logger
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY") or ""
 ALGORITHM = os.getenv("ALGORITHM") or ""
 ACCESS_TOKEN_TIME = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES",30))
 REFRESH_TOKEN_TIME = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS",7))
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
-
+logger = get_logger("auth")
 async def create_access_token(user_id: str):
     payload = {
       "user_id": user_id,
@@ -34,15 +35,18 @@ async def create_refresh_token(user_id: str):
 async def get_user_from_token(token: str, expected_type : str, db: AsyncSession) -> User:
     try:
         payload = jwt.decode(token, SECRET_KEY,algorithms=[ALGORITHM])
-        print("PAYLOAD:", payload)
+        
 
         if payload.get("type") != expected_type:
+            logger.warning("Invalid token type", extra={"expected_type": expected_type, "got": payload.get("type")})
             raise ValueError("Invalid token type")
         user_id = UUID(payload.get("user_id"))
-        print("USER ID:", user_id)
+        logger.info("User ID found in token", extra={"user_id": user_id})
         if user_id is None:
+            
             raise ValueError("Invalid token: No user_id")
-    except JWTError:
+    except JWTError as e:
+        logger.error("JWT decoding failed", extra={"error": str(e)})
         raise ValueError("Couldnot validate credentials")
     
     
@@ -52,6 +56,7 @@ async def get_user_from_token(token: str, expected_type : str, db: AsyncSession)
     result = await db.execute(stmt)
     user = result.scalar_one_or_none()
     if not user:
+        logger.warning("User not found for token", extra={"user_id": user_id})
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid token: User not found")
     return user
 
@@ -59,6 +64,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme),db:AsyncSession =
     try:
         return await get_user_from_token(token, "access",db)
     except ValueError as e:
+        logger.warning("Access token validation failed", extra={"error": str(e)})
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization failed"

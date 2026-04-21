@@ -3,12 +3,15 @@ from dotenv import load_dotenv
 import os
 from google import genai
 from typing import List
+from app.logger import get_logger
+
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY")) 
 #model = genai.GenerativeModel("gemini-1.5-flash") 
-
+logger = get_logger("ai_service")
 async def summarize_chat_history(messages: List[str]):
     if not messages:
+        logger.warning("No messages found for chat summary")
         return "No conversation history to summarize"
     chat_transcript = "\n".join(messages)
 
@@ -34,7 +37,6 @@ async def summarize_chat_history(messages: List[str]):
             return response.text
         return "I couldn't generate a summary at this time."
     except Exception as e:
-        '''for m in client.models.list():
-            print(m.name)'''
-        print(f"Error in reaching our AI: {e}")
+        
+        logger.error("AI summary generation failed", extra={"error": str(e)})
         return "Sorry, your assistant is currently unavailable. Please try again later"

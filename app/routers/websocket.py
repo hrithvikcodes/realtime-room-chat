@@ -6,7 +6,8 @@ from app.crud.messages import send_message
 from app.models.room import Room  
 from app.chat_cache import cache_message
 from uuid import UUID
-
+from app.logger import get_logger
+logger = get_logger("websocket.router")
 router = APIRouter()
 
 @router.websocket("/ws/{room_id}")
@@ -17,20 +18,24 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
             user = await get_user_from_token(token, "access", db)
             room = await db.get(Room, room_id)
             if not room:
+                logger.warning("WebSocket connection attempt to non-existent room")
                 await websocket.close(code=1008)
+                
                 return
     except Exception as e:
-        print("AUTH ERROR:", e)
+        logger.error("Authentication error", extra={"room_id": room_id, "error": str(e)})
         await websocket.close(code=403)
         return
 
     await manager.connect(websocket, room_id)
+    logger.info("User connected to room", extra={"room_id": room_id, "user_id": user.id}) 
 
     try:
         while True:
             try:
                 data = await websocket.receive_json()
             except Exception:
+                logger.error("Failed to receive JSON data", extra={"room_id": room_id})
                 await websocket.send_json({"error": "Invalid JSON"})
                 continue
 
@@ -48,7 +53,7 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
                         file=None
                     )
             except Exception as e:
-                print("DB ERROR:", e)
+                logger.error("Failed to send message", extra={"room_id": room_id, "error": str(e)})
                 await websocket.send_json({"error": "Message failed"})
                 continue
 
@@ -62,16 +67,17 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
             try:
                 await manager.broadcast_to_room(room_id, message)
             except Exception as e:
-                print("BROADCAST ERROR:", e)
+                logger.error("Failed to broadcast message to WebSocket clients", extra={"room_id": room_id, "error": str(e)})
 
             try:
                 await cache_message(room_id=room_id, message=message)
             except Exception as e:
-                print("CACHE ERROR:", e)
+                logger.error("Failed to cache message", extra={"room_id": room_id, "error": str(e)})
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)
+        logger.info("User disconnected from room", extra={"room_id": room_id, "user_id": user.id})
     except Exception as e:
-        print("FATAL WS ERROR:", e)
+        logger.error("FATAL WS ERROR", extra={"room_id": room_id, "error": str(e)})
         manager.disconnect(websocket, room_id)
         await websocket.close()
