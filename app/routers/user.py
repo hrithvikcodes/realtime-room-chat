@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File
+from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,11 +13,13 @@ from app.schemas.user import CreateUser, RefreshRequest
 from app.crud.users import get_user_by_email, get_user_by_id, create_user
 from app.imagekit import delete_from_imagekit, upload_to_imagekit
 from app.logger import get_logger
+from app.limiter import limiter
 router = APIRouter(prefix="/auth",tags=["auth"])
 logger = get_logger("user.router")
 
 @router.post("/signup",status_code=status.HTTP_201_CREATED)
-async def signup(data: CreateUser, db: AsyncSession = Depends(get_db)):
+@limiter.limit("3/minute")
+async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(get_db)):
     db_user = await get_user_by_email(db, email=data.email)
     if db_user:
         logger.warning("Attempt to register with existing email")
@@ -26,7 +28,8 @@ async def signup(data: CreateUser, db: AsyncSession = Depends(get_db)):
     return await create_user(db, data.model_dump())
 
 @router.post("/login",status_code=status.HTTP_200_OK)
-async def login(form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession = Depends(get_db)):
+@limiter.limit("3/minute")
+async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession = Depends(get_db)):
     user  : User | None =await get_user_by_email(db, form_data.username)
     if not user or not verify_password(form_data.password,user.hashed_password):
         logger.warning("Login attempt with invalid credentials")
@@ -48,7 +51,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh",status_code=status.HTTP_200_OK)
-async def refresh(data: RefreshRequest,db: AsyncSession = Depends(get_db)):
+@limiter.limit("10/minute")
+async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depends(get_db)):
     check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
     result = await db.execute(check_token)
     stored_token = result.scalar_one_or_none()

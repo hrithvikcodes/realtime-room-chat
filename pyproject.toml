@@ -18,5 +18,6 @@ dependencies = [
     "python-jose[cryptography]>=3.5.0",
     "python-json-logger>=4.1.0",
     "redis[asyncio]>=7.4.0",
+    "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.46",
 ]

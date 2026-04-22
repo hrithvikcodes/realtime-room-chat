@@ -1,5 +1,5 @@
 
-from fastapi import Depends, APIRouter, File, UploadFile, status, HTTPException, Query
+from fastapi import Depends, APIRouter, File, UploadFile, status, HTTPException, Query, Request
 from app.imagekit import upload_to_imagekit, delete_from_imagekit
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
@@ -17,6 +17,7 @@ from uuid import UUID
 from app.ai_service import summarize_chat_history
 from app.chat_cache import format_messages_for_ai
 from app.logger import get_logger
+from app.limiter import limiter
 router = APIRouter(prefix="/room",tags=["room"])
 logger = get_logger("room.router")
 
@@ -40,7 +41,8 @@ async def update_room_data(room_id: UUID,data: RoomCreate,db:AsyncSession = Depe
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room not found")
     return updated_room
 @router.post("/{room_id}/join",status_code=status.HTTP_200_OK)
-async def join_room(room_id: UUID,invite_code: str = Query(...),db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
+@limiter.limit("5/minute")
+async def join_room(request:Request,room_id: UUID,invite_code: str = Query(...),db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
     room = await get_room_by_id(db,room_id)
     if not room:
         logger.warning("Attempt to join non-existent room", extra={"room_id": room_id})
@@ -200,7 +202,8 @@ async def remove_profile_picture(
     await db.commit()
 
 @router.get("/{room_id}/summary", status_code=status.HTTP_200_OK)
-async def get_chat_summary(room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+@limiter.limit("5/hour")
+async def get_chat_summary(request:Request,room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     membership = await get_membership(db, room_id, current_user.id)
     if not membership:
         logger.warning("Unauthorized attempt to access chat summary", extra={"room_id": room_id, "user_id": current_user.id})
