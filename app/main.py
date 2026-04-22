@@ -11,6 +11,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from slowapi import  _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
+from slowapi.middleware import SlowAPIMiddleware
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
@@ -22,7 +23,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler) # type: ignore
-
+app.add_middleware(SlowAPIMiddleware) 
 app.include_router(user.router)
 app.include_router(room.router)
 app.include_router(message.router)
