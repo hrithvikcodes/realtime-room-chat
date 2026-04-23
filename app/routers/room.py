@@ -10,6 +10,7 @@ from app.schemas.room import RoomCreate, RoomMemberResponse, RoomResponse
 from app.models.user import User
 from app.models.room import  Role
 from app.models.message import Message
+
 from app.crud.rooms import (create_db_room, delete_db_room, get_db_room_members, get_membership,
     get_my_db_rooms, get_room_by_id, get_room_by_invite_code, join_db_room, leave_db_room, 
     regenerate_invite_code, remove_room_member, update_room_details)
@@ -17,7 +18,7 @@ from uuid import UUID
 from app.ai_service import summarize_chat_history
 from app.chat_cache import format_messages_for_ai
 from app.logger import get_logger
-from app.limiter import limiter
+from app.limiter import limiter, get_user_or_ip
 router = APIRouter(prefix="/room",tags=["room"])
 logger = get_logger("room.router")
 
@@ -202,7 +203,7 @@ async def remove_profile_picture(
     await db.commit()
 
 @router.get("/{room_id}/summary", status_code=status.HTTP_200_OK)
-@limiter.limit("5/hour")
+@limiter.limit("5/hour",key_func=get_user_or_ip) # type: ignore
 async def get_chat_summary(request:Request,room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     membership = await get_membership(db, room_id, current_user.id)
     if not membership:
