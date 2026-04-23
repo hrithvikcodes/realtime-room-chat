@@ -36,7 +36,11 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
                 data = await websocket.receive_json()
             except Exception:
                 logger.error("Failed to receive JSON data", extra={"room_id": room_id})
-                await websocket.send_json({"error": "Invalid JSON"})
+                try:
+                    await websocket.send_json({"error": "Invalid JSON"})
+                except Exception as e:
+                    logger.error("Failed to send error message", extra={"room_id": room_id, "error": str(e)})
+                    break
                 continue
 
             content = data.get("content")
@@ -54,7 +58,11 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
                     )
             except Exception as e:
                 logger.error("Failed to send message", extra={"room_id": room_id, "error": str(e)})
-                await websocket.send_json({"error": "Message failed"})
+                try:
+                    await websocket.send_json({"error": "Message failed"})
+                except Exception as e:
+                    logger.error("Failed to send error message", extra={"room_id": room_id, "error": str(e)})
+                    break
                 continue
 
             message = {
@@ -80,4 +88,4 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
     except Exception as e:
         logger.error("FATAL WS ERROR", extra={"room_id": room_id, "error": str(e)})
         manager.disconnect(websocket, room_id)
-        await websocket.close()
+        

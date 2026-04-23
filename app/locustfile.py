@@ -38,6 +38,10 @@ class ChatUser(HttpUser):
     @task
     def send_message(self):
         self.ws.send(json.dumps({"content": "hello from locust!"}))
-
+        try:
+            self.ws.recv()
+        except Exception :
+            pass
+            
     def on_stop(self):
         self.ws.close()
