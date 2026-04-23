@@ -18,7 +18,7 @@ router = APIRouter(prefix="/auth",tags=["auth"])
 logger = get_logger("user.router")
 
 @router.post("/signup",status_code=status.HTTP_201_CREATED)
-@limiter.limit("3/minute")
+@limiter.limit("100/minute")
 async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(get_db)):
     db_user = await get_user_by_email(db, email=data.email)
     if db_user:
@@ -28,7 +28,7 @@ async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(ge
     return await create_user(db, data.model_dump())
 
 @router.post("/login",status_code=status.HTTP_200_OK)
-@limiter.limit("3/minute")
+@limiter.limit("100/minute")
 async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession = Depends(get_db)):
     user  : User | None =await get_user_by_email(db, form_data.username)
     if not user or not verify_password(form_data.password,user.hashed_password):
@@ -51,7 +51,7 @@ async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh",status_code=status.HTTP_200_OK)
-@limiter.limit("10/minute")
+@limiter.limit("100/minute")
 async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depends(get_db)):
     check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
     result = await db.execute(check_token)
