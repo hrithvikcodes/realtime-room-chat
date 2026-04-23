@@ -10,6 +10,7 @@ dependencies = [
     "fastapi[standard]>=0.131.0",
     "google-genai>=1.66.0",
     "imagekitio>=5.2.0",
+    "locust>=2.43.4",
     "passlib[argon2]>=1.7.4",
     "psycopg2-binary>=2.9.11",
     "pwdlib[argon2]>=0.3.0",
@@ -20,4 +21,5 @@ dependencies = [
     "redis[asyncio]>=7.4.0",
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.46",
+    "websocket-client>=1.9.0",
 ]
