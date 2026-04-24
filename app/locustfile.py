@@ -37,7 +37,7 @@ class ChatUser(HttpUser):
 
     @task
     def send_message(self):
-        self.ws.send(json.dumps({"content": "hello from locust!"}))
+        self.ws.send(json.dumps({"content": "hello test 1.1!"}))
         try:
             self.ws.recv()
         except Exception :
