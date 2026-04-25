@@ -9,8 +9,7 @@ logger = get_logger("locustfile")
 ROOM_IDS = [
     "a1a60304-5010-4399-a0ce-046d275a48f5",
     "563c1916-ad81-4838-be1b-67a053f1f1d0",
-    "019966e1-d7a5-4a48-911a-e2d8f2b9ab8c",
-    "0b8840e4-2e26-4409-a88b-62e280214ab1"
+    
 ]
 
 USERS = [
@@ -18,10 +17,7 @@ USERS = [
     {"email": "mahi@gmail.com", "password": "mahi"},
     {"email": "rutu@gmail.com", "password": "rutu"},
     {"email": "ananya@gmail.com", "password": "ananya"},
-    {"email": "rochan@gmail.com", "password": "rochan"},
-    {"email": "moksha@gmail.com", "password": "moksha"},
-    {"email": "vijay@gmail.com", "password": "vijay"},
-    {"email": "anu@gmail.com", "password": "anu"},
+    
 ]
 
 class ChatUser(HttpUser):
