@@ -25,23 +25,37 @@ class ChatUser(HttpUser):
     wait_time = between(1, 3)
 
     def on_start(self):
+        self.ws = None
         user = random.choice(USERS)
         response = self.client.post("/auth/login", data={
             "username": user["email"],
             "password": user["password"]
         })
         self.token = response.json().get("access_token")
+        if not self.token:
+            return
         self.room_id = random.choice(ROOM_IDS)
         ws_url = f"wss://realtime-room-chat-production.up.railway.app/ws/{self.room_id}?token={self.token}"
-        self.ws = websocket.create_connection(ws_url)
+        try:
+            self.ws = websocket.create_connection(ws_url)
+        except Exception as e:
+            self.ws = None
 
     @task
     def send_message(self):
-        self.ws.send(json.dumps({"content": "hello test 1.1!"}))
+        if not self.ws:
+            return
         try:
-            self.ws.recv()
-        except Exception :
+            self.ws.send(json.dumps({"content": "hello test 1.1!"}))
+            self.ws.settimeout(3)
+            try:
+                self.ws.recv()
+            except Exception:
+                pass
+        except Exception:
             pass
+        
             
     def on_stop(self):
-        self.ws.close()
+        if self.ws:
+            self.ws.close()

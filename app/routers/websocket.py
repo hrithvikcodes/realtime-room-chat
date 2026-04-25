@@ -83,9 +83,10 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
                 logger.error("Failed to cache message", extra={"room_id": room_id, "error": str(e)})
 
     except WebSocketDisconnect:
-        manager.disconnect(websocket, room_id)
+        
         logger.info("User disconnected from room", extra={"room_id": room_id, "user_id": user.id})
     except Exception as e:
         logger.error("FATAL WS ERROR", extra={"room_id": room_id, "error": str(e)})
-        manager.disconnect(websocket, room_id)
         
+    finally:
+        await manager.disconnect(websocket, room_id)
