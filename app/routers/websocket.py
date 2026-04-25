@@ -34,6 +34,8 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
         while True:
             try:
                 data = await websocket.receive_json()
+            except WebSocketDisconnect:
+                raise
             except Exception:
                 logger.error("Failed to receive JSON data", extra={"room_id": room_id})
                 try:
