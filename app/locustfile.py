@@ -4,6 +4,8 @@ import json
 import random
 from locust import HttpUser, task, between
 import time
+from app.logger import get_logger
+logger = get_logger("locustfile")
 ROOM_IDS = [
     "a1a60304-5010-4399-a0ce-046d275a48f5",
     "563c1916-ad81-4838-be1b-67a053f1f1d0",
@@ -46,17 +48,16 @@ class ChatUser(HttpUser):
     def send_message(self):
         if not self.ws:
             return
-        start = 0.0
+        
         try:
-            start = time.time()
-            self.ws.send(json.dumps({"content": "hello test 1.2!"}))
+            
+            self.ws.send(json.dumps({"content": "hello test 1.3!"}))
             self.ws.settimeout(3)
             
             try:
                 
                 self.ws.recv()
-                latency = (time.time() - start) * 1000
-                print(f"Message round trip latency: {latency:.2f} ms")
+                
             except Exception:
                 pass
         except Exception:

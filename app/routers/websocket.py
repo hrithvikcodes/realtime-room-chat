@@ -7,6 +7,7 @@ from app.models.room import Room
 from app.chat_cache import cache_message
 from uuid import UUID
 from app.logger import get_logger
+import time
 logger = get_logger("websocket.router")
 router = APIRouter()
 
@@ -73,9 +74,11 @@ async def chat_socket(websocket: WebSocket, room_id: UUID, token: str = Query(..
                 "created_at": str(new_msg.posted_at),
                 "media_url": new_msg.media_url
             }
-
+            start = time.time()
             try:
                 await manager.broadcast_to_room(room_id, message)
+                broadcast_latency = (time.time() - start) * 1000
+                logger.info("Message broadcast complete", extra={"room_id": str(room_id), "broadcast_latency_ms": round(broadcast_latency,2)})
             except Exception as e:
                 logger.error("Failed to broadcast message to WebSocket clients", extra={"room_id": room_id, "error": str(e)})
 
