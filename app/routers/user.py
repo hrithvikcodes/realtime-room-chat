@@ -14,11 +14,12 @@ from app.crud.users import get_user_by_email, get_user_by_id, create_user
 from app.imagekit import delete_from_imagekit, upload_to_imagekit
 from app.logger import get_logger
 from app.limiter import limiter
+from fastapi.concurrency import run_in_threadpool
 router = APIRouter(prefix="/auth",tags=["auth"])
 logger = get_logger("user.router")
 
 @router.post("/signup",status_code=status.HTTP_201_CREATED)
-@limiter.limit("100/minute")
+@limiter.limit("3/minute")
 async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(get_db)):
     db_user = await get_user_by_email(db, email=data.email)
     if db_user:
@@ -28,10 +29,11 @@ async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(ge
     return await create_user(db, data.model_dump())
 
 @router.post("/login",status_code=status.HTTP_200_OK)
-@limiter.limit("100/minute")
+@limiter.limit("5/minute")
 async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(),db:AsyncSession = Depends(get_db)):
     user  : User | None =await get_user_by_email(db, form_data.username)
-    if not user or not verify_password(form_data.password,user.hashed_password):
+    password_valid = await run_in_threadpool(verify_password, form_data.password, user.hashed_password) if user else False
+    if not user or not password_valid:
         logger.warning("Login attempt with invalid credentials")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
     assert user is not None
@@ -51,7 +53,7 @@ async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh",status_code=status.HTTP_200_OK)
-@limiter.limit("100/minute")
+@limiter.limit("10/minute")
 async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depends(get_db)):
     check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
     result = await db.execute(check_token)
