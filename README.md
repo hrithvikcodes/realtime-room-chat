@@ -15,17 +15,22 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 *   **Storage Optimization**: Automatic cleanup of old media; when a user updates or deletes a media file, the previous file is deleted from **ImageKit** storage to save space.
 *   **Structured JSON Logging** : Production grade logging across all layers (auth,rooms,messages,Websockets,HTTP middleware) with structured JSON output for easy querying.
 *   **Structured Backend** : Modular architecture with dedicated routers, models, and CRUD layers for scalability.
+*   **Rate limiting** : unauthenticated endpoints (login, signup) are rate limited by IP. authenticated endpoints are rate limited by user ID so VPN bypasses won't work.
 
 ## Tech Stack
 * **Framework** : FastAPI
 * **Package Manager** : uv
 * **AI Engine** : Google Gemini 2.5 API
 * **Media Hosting** : ImageKit.io
-* **Database** : SQLAlchemy + PostgreSQL
+* **Database** : SQLAlchemy(async) + PostgreSQL
 * **Cache** : Redis
 * **Realtime** : WebSockets
 * **Containerization** : Docker
 * **Deployment** : Railway
+* **Rate Limiting**: slowapo + Redis
+* **Logging** : python-json-logger
+* **Migrations**: alembic
+* **Auth** : JWT + argon2 hashing
 
 ## 📂 Project Structure
 ```text
@@ -43,6 +48,7 @@ chat/
 │   ├── chat_cache.py
 │   ├── db.py
 │   ├── imagekit.py
+│   ├── limiter.py
 │   ├── logger.py
 │   ├── main.py
 │   ├── middleware.py
@@ -56,6 +62,18 @@ chat/
 ├── pyproject.toml
 └── uv.lock
 ```
+***Load Testing***
+Tested with Locust : 32 concurrent WebSocket connections across 4 rooms with 8 users each
+**Results: **
+Min response time : 462ms
+Median response time: 650ms
+Max response time : 1111ms
+Failure rate: 0%
+>Running on Railway's free tier (512 GB RAM, 1v CPU, shared). These numbers reflect that constraint. On a dedicated server with more resources, both throughput and latency would improve significantly.
+>The ~200ms baseline is geographic , test machine is in India, Railway servers are in US Oregon. On a closer server  these numbers would roughly halve.
+
+**Scaling note : **
+The current WebSocket manager keeps connections in memory on a single server. This works well for the current scale but wouldn't support horizontal scaling. The fix would be replacing the in memory manager with Redis Pub/Sub so multiple server instances can share connections, that's on the roadmap.
 
 ## Getting Started
 ### 1. Clone & Install
