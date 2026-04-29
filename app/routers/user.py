@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File, Request
+from fastapi import APIRouter, Depends, status,HTTPException,UploadFile,File, Request, BackgroundTasks
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select, delete
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,6 +14,7 @@ from app.crud.users import get_user_by_email, get_user_by_id, create_user
 from app.imagekit import delete_from_imagekit, upload_to_imagekit
 from app.logger import get_logger
 from app.limiter import limiter
+from app.security import hash_refresh_token
 from fastapi.concurrency import run_in_threadpool
 router = APIRouter(prefix="/auth",tags=["auth"])
 logger = get_logger("user.router")
@@ -44,7 +45,7 @@ async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(
 
     db_token = RefreshToken(
         user_id = user.id,
-        token = refresh_token,
+        token = hash_refresh_token(refresh_token),
         expires_at = datetime.now() + timedelta(days=REFRESH_TOKEN_TIME)
     )
     db.add(db_token)
@@ -55,7 +56,7 @@ async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(
 @router.post("/refresh",status_code=status.HTTP_200_OK)
 @limiter.limit("10/minute")
 async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depends(get_db)):
-    check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
+    check_token = select(RefreshToken).where(RefreshToken.token == hash_refresh_token(data.refresh_token))
     result = await db.execute(check_token)
     stored_token = result.scalar_one_or_none()
     if not stored_token :
@@ -77,7 +78,7 @@ async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depend
     new_refresh_token = await create_refresh_token(str(user.id))
     db.add(RefreshToken(
         user_id = user.id,
-        token = new_refresh_token,
+        token = hash_refresh_token(new_refresh_token),
         expires_at = datetime.now() + timedelta(days=REFRESH_TOKEN_TIME)
     ))
     await db.commit()
@@ -89,7 +90,7 @@ async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depend
 
 @router.post("/logout",status_code=status.HTTP_200_OK)  
 async def logout(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
-    check_token = select(RefreshToken).where(RefreshToken.token == data.refresh_token)
+    check_token = select(RefreshToken).where(RefreshToken.token == hash_refresh_token(data.refresh_token))
     result = await db.execute(check_token)
     stored_token = result.scalar_one_or_none()
     if stored_token:
