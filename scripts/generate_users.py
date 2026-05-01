@@ -1,5 +1,5 @@
 import requests
-from scripts.generate_users import INVITE_CODE
+
 
 BASE_URL = "https://realtime-room-chat-production.up.railway.app"
 
