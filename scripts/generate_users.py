@@ -3,8 +3,8 @@ from scripts.generate_users import INVITE_CODE
 
 BASE_URL = "https://realtime-room-chat-production.up.railway.app"
 
-INVITE_CODE = "2lU3zu2c0yoVPKsquzDoRg"
-ROOM_ID = "3bf9fa29-ca4c-468c-8d09-4192e9585cae"
+INVITE_CODE = "dctC7jYD3gIJlnbRWx-5cw"
+ROOM_ID = "e62b8074-e870-460b-a239-8faae25688bc"
 users = []
 for i in range(32):
     email = f"loaduser{i}@test.com"
