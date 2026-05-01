@@ -65,9 +65,9 @@ chat/
 ***Load Testing***
 Tested with Locust : 32 concurrent WebSocket connections across 4 rooms with 8 users each
 ##Results: 
-*  **Min response time** : 462ms
-*  **Median response time**: 650ms
-*  **Max response time** : 1111ms
+*  **Min response time** : 390ms
+*  **Median response time**: 580ms
+*  **Max response time** : 821ms
 *  **Failure rate**: 0%
 >Running on Railway's free tier (512 GB RAM, 1v CPU, shared). These numbers reflect that constraint. On a dedicated server with more resources, both throughput and latency would improve significantly.
 >The ~200ms baseline is geographic , test machine is in India, Railway servers are in US Oregon. On a closer server  these numbers would roughly halve.
