@@ -42,7 +42,7 @@ async def update_room_data(room_id: UUID,data: RoomCreate,db:AsyncSession = Depe
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Room not found")
     return updated_room
 @router.post("/{room_id}/join",status_code=status.HTTP_200_OK)
-@limiter.limit("5/minute")
+@limiter.limit("100/minute")
 async def join_room(request:Request,room_id: UUID,invite_code: str = Query(...),db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user)):
     room = await get_room_by_id(db,room_id)
     if not room:
