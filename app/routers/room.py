@@ -183,18 +183,17 @@ async def remove_profile_picture(
 ):
     membership = await get_membership(db,room_id,current_user.id)
     if not membership:
-        logger.warning("Unauthorized attempt to remove room profile picture", extra={"room_id": room_id, "user_id": current_user.id})
+        
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,detail="Not a Member")
     if membership.role != Role.ADMIN:
-        logger.warning("Non-admin attempt to remove room profile picture", extra={"room_id": room_id, "user_id": current_user.id})
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Authentication failed")
     
     room = await get_room_by_id(db,room_id)
     if not room:
-        logger.warning("Attempt to remove profile picture for non-existent room", extra={"room_id": room_id})
+        
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Room not found")
     if not room.profile_id:
-        logger.warning("Attempt to remove non-existent profile picture", extra={"room_id": room_id})
+        
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Room has no profile picture to remove")
     
     await delete_from_imagekit(room.profile_id)
@@ -207,13 +206,13 @@ async def remove_profile_picture(
 async def get_chat_summary(request:Request,room_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
     membership = await get_membership(db, room_id, current_user.id)
     if not membership:
-        logger.warning("Unauthorized attempt to access chat summary", extra={"room_id": room_id, "user_id": current_user.id})
+        
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Authentication failed")
 
     formatted_messages = await format_messages_for_ai(room_id)
 
     if not formatted_messages:
-        logger.warning("No messages found for chat summary", extra={"room_id": room_id})
+        
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No conversation found")
 
     ai_summary = await summarize_chat_history(formatted_messages)

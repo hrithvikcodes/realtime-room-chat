@@ -9,8 +9,8 @@ from sqlalchemy.orm import joinedload, selectinload
 from app.models.user import User
 from typing import Optional
 from sqlalchemy.orm import selectinload
-from app.logger import get_logger
-logger = get_logger("messages.crud")
+'''from app.logger import get_logger
+logger = get_logger("messages.crud")'''
 async def send_message(room_id:UUID,user_id:UUID,db: AsyncSession,content: str,file: Optional[UploadFile] = None):
     
     if file is not None:
@@ -27,14 +27,14 @@ async def send_message(room_id:UUID,user_id:UUID,db: AsyncSession,content: str,f
     db.add(new_msg)
     await db.commit()
     await db.refresh(new_msg)
-    logger.info("Message sent", extra={"message_id": new_msg.id, "room_id": room_id, "sender_id": user_id})
+    
     return new_msg
 
 async def get_recent_messages(room_id:UUID,db:AsyncSession, limit: int, offset: int):
     query = select(Message).options(selectinload(Message.sender)).where(Message.room_id == room_id).order_by(Message.posted_at.desc()).limit(limit).offset(offset)
     result = await db.execute(query)
     messages =  result.scalars().all()
-    logger.info("Retrieved recent messages", extra={"room_id": room_id, "message_count": len(messages)})
+    
     return messages
 
 async def get_msgs_by_sender_name(room_id:UUID,name: str,db:AsyncSession, limit: int, offset: int):
@@ -48,7 +48,7 @@ async def get_msg_by_id(room_id: UUID, msg_id: UUID,db: AsyncSession):
     query = select(Message).where(Message.room_id == room_id,Message.id == msg_id)
     result = await db.execute(query)
     message = result.scalar_one_or_none()
-    logger.info("Retrieved message by ID", extra={"room_id": room_id, "message_id": msg_id, "found": bool(message)})
+    
     return message
 
 async def update_message(msg_id: UUID,new_url: Optional[str],new_id: Optional[str],content:str,file: UploadFile,db:AsyncSession):
@@ -61,13 +61,13 @@ async def update_message(msg_id: UUID,new_url: Optional[str],new_id: Optional[st
     result = await db.execute(stmt)
     await db.commit()
     edited_message = result.scalar_one_or_none()
-    logger.info("Message updated", extra={"message_id": msg_id})
+    
     return edited_message
     
     
 async def delete_message(msg_id: UUID, room_id: UUID,db: AsyncSession):
     await db.execute(delete(Message).where(Message.room_id == room_id,Message.id == msg_id))
-    logger.info("Message deleted", extra={"message_id": msg_id, "room_id": room_id})
+    
     await db.commit()
     
 
@@ -75,7 +75,7 @@ async def search_content(room_id:UUID,key_word: str,db:AsyncSession,limit: int, 
     query = select(Message).where(Message.room_id == room_id,Message.content.ilike(f"%{key_word}%")).options(selectinload(Message.sender)).order_by(Message.posted_at.desc()).limit(limit).offset(offset)
     result = await db.execute(query)
     messages = result.scalars().all()
-    logger.info("Searched messages by content", extra={"room_id": room_id, "keyword": key_word, "result_count": len(messages)})
+    
     return messages
 
 

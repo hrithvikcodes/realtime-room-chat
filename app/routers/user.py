@@ -26,7 +26,7 @@ async def signup(data: CreateUser,request:Request, db: AsyncSession = Depends(ge
     if db_user:
         logger.warning("Attempt to register with existing email")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
-    logger.info("New user registered", extra={"email": data.email})
+    
     return await create_user(db, data.model_dump())
 
 @router.post("/login",status_code=status.HTTP_200_OK)
@@ -50,7 +50,6 @@ async def login(request: Request,form_data: OAuth2PasswordRequestForm = Depends(
     )
     db.add(db_token)
     await db.commit()
-    logger.info("User logged in", extra={"user_id": user.id})
     return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
 
 @router.post("/refresh",status_code=status.HTTP_200_OK)
@@ -83,7 +82,7 @@ async def refresh(request:Request,data: RefreshRequest,db: AsyncSession = Depend
     ))
     await db.commit()
     new_access_token = await create_access_token(str(user.id))
-    logger.info("Token refreshed", extra={"user_id": user.id})
+    
     return {"access_token": new_access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
     
    
@@ -96,7 +95,6 @@ async def logout(data: RefreshRequest, db: AsyncSession = Depends(get_db)):
     if stored_token:
         await db.delete(stored_token)
         await db.commit()
-    logger.info("User logged out")
     return {"detail": "Logged out successfully"}
 @router.patch("/profile/picture")
 async def update_profile_pic(
@@ -114,7 +112,6 @@ async def update_profile_pic(
     
     await db.commit()
     await db.refresh(current_user)
-    logger.info("User updated profile picture", extra={"user_id": current_user.id})
     return {"profile_pic_url": new_url}
 
 @router.delete("/profile/picture", status_code=status.HTTP_204_NO_CONTENT)
@@ -125,7 +122,6 @@ async def remove_profile_pic(
     if not current_user.profile_pic_id:
         logger.warning("Attempt to remove non-existent profile picture", extra={"user_id": current_user.id})    
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No profile picture to remove")
-    logger.info("User removed profile picture", extra={"user_id": current_user.id})
     await delete_from_imagekit(current_user.profile_pic_id)
 
     current_user.profile_pic_id = None
