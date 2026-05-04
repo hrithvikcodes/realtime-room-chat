@@ -63,7 +63,7 @@ chat/
 └── uv.lock
 ```
 ***Load Testing***
-Tested with Locust : 32 concurrent WebSocket connections across 4 rooms with 8 users each
+Tested with Locust : The test includes 32 users logging in simultaneously, each sends a message, handles 32 concurrent web socket connections across 4 rooms with 8 users each.
 ##Results: 
 *  **Min response time** : 390ms
 *  **Median response time**: 580ms
