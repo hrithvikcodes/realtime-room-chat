@@ -25,7 +25,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 * **Database** : SQLAlchemy(async) + PostgreSQL
 * **Cache** : Redis
 * **Realtime** : WebSockets
-* **Containerization** : Docker
+* **Containerization** : Docker + Docker Compose
 * **Deployment** : Railway
 * **Rate Limiting**: slowapo + Redis
 * **Logging** : python-json-logger
@@ -57,20 +57,13 @@ chat/
 │   └── websocket_manager.py
 ├── alembic.ini
 ├── Dockerfile
+|-- docker-compose.yml
 ├── railway.toml
 ├── .env.example
 ├── pyproject.toml
 └── uv.lock
 ```
-***Load Testing***
-Tested with Locust : The test includes 32 users logging in simultaneously, each sends a message, handles 32 concurrent web socket connections across 4 rooms with 8 users each.
-##Results: 
-*  **Min response time** : 390ms
-*  **Median response time**: 580ms
-*  **Max response time** : 821ms
-*  **Failure rate**: 0%
->Running on Railway's free tier (512 GB RAM, 1v CPU, shared). These numbers reflect that constraint. On a dedicated server with more resources, both throughput and latency would improve significantly.
->The ~200ms baseline is geographic , test machine is in India, Railway servers are in US Oregon. On a closer server  these numbers would roughly halve.
+
 
 **Scaling note : **
 The current WebSocket manager keeps connections in memory on a single server. This works well for the current scale but wouldn't support horizontal scaling. The fix would be replacing the in memory manager with Redis Pub/Sub so multiple server instances can share connections, that's on the roadmap.
@@ -86,7 +79,7 @@ uv sync
 ### 2. Environment Setup
 Create a `.env` file in the project root. Refer to `.env.example` for required variables:
 ```text
-DATABASE_URL=postgresql://...
+DATABASE_URL= postgresql+asyncpg://postgres:yourpassword@postgres-db:5432/chat
 REDIS_URL=redis://...
 SECRET_KEY=...
 ALGORITHM=HS256
@@ -96,28 +89,37 @@ IMAGEKIT_PUBLIC_KEY=...
 IMAGEKIT_PRIVATE_KEY=...
 URL_ENDPOINT=...
 GOOGLE_API_KEY=...
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=yourpassword
+POSTGRES_DB=chat
 ```
 
-### 3. Run Migrations
+### 3. Start all containers
 ```bash
-uv run alembic upgrade head
+docker-compose up -d
 ```
 
-### 4. Run the Application
+### 4. Run migrations
 ```bash
-uv run fastapi dev app/main.py
+docker-compose exec fastapi uv run alembic upgrade head
 ```
 
 ### 5. Explore the docs
 * **Swagger UI**: http://localhost:8000/docs
 * **ReDoc** : http://localhost:8000/redoc
 
-### Docker
-```bash
-docker build -t chat-app .
-docker run -p 8000:8000 --env-file .env chat-app
-```
 
+
+---
+***Load Testing***
+Tested with Locust : The test includes 32 users logging in simultaneously, each sends a message, handles 32 concurrent web socket connections across 4 rooms with 8 users each.
+##Results: 
+*  **Min response time** : 390ms
+*  **Median response time**: 580ms
+*  **Max response time** : 821ms
+*  **Failure rate**: 0%
+>Running on Railway's free tier (512 MB RAM, 1v CPU, shared). These numbers reflect that constraint. On a dedicated server with more resources, both throughput and latency would improve significantly.
+>The ~200ms baseline is geographic , test machine is in India, Railway servers are in US Oregon. On a closer server  these numbers would roughly halve.
 ---
 Developed by [Hrithvik](https://github.com/hrithvikcodes) ♡
 
