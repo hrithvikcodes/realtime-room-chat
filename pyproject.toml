@@ -9,6 +9,7 @@ dependencies = [
     "asyncpg>=0.31.0",
     "fastapi[standard]>=0.131.0",
     "google-genai>=1.66.0",
+    "httpx>=0.28.1",
     "imagekitio>=5.2.0",
     "passlib[argon2]>=1.7.4",
     "psycopg2-binary>=2.9.11",
@@ -21,4 +22,11 @@ dependencies = [
     "slowapi>=0.1.9",
     "sqlalchemy[asyncio]>=2.0.46",
     "websocket-client>=1.9.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "pytest>=9.1.0",
+    "pytest-asyncio>=1.4.0",
 ]
