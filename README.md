@@ -27,7 +27,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 * **Realtime** : WebSockets
 * **Containerization** : Docker + Docker Compose
 * **Deployment** : Railway
-* **Rate Limiting**: slowapo + Redis
+* **Rate Limiting**: slowapi + Redis
 * **Logging** : python-json-logger
 * **Migrations**: alembic
 * **Auth** : JWT + argon2 hashing
@@ -108,19 +108,6 @@ docker-compose exec fastapi uv run alembic upgrade head
 * **Swagger UI**: http://localhost:8000/docs
 * **ReDoc** : http://localhost:8000/redoc
 
-
-
----
-***Load Testing***
-Tested with Locust : The test includes 32 users logging in simultaneously, each sends a message, handles 32 concurrent web socket connections across 4 rooms with 8 users each.
-##Results: 
-*  **Min response time** : 390ms
-*  **Median response time**: 580ms
-*  **Max response time** : 821ms
-*  **Failure rate**: 0%
->Running on Railway's free tier (512 MB RAM, 1v CPU, shared). These numbers reflect that constraint. On a dedicated server with more resources, both throughput and latency would improve significantly.
->The ~200ms baseline is geographic , test machine is in India, Railway servers are in US Oregon. On a closer server  these numbers would roughly halve.
----
 Developed by [Hrithvik](https://github.com/hrithvikcodes) ♡
 
 
