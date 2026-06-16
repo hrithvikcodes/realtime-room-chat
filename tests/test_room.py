@@ -76,6 +76,7 @@ def test_room_valid_invite():
         }, headers=admin_headers)
         room_id = create_room.json()["id"]
         invite_code = client.get(f"/room/{room_id}/invite", headers=admin_headers).json()["invite_code"]
+        
 
         client.post("/auth/signup", json={
             "email": "memberroomA@email.com",

@@ -65,7 +65,7 @@ async def recent_messages(room_id: UUID,db: AsyncSession = Depends(get_db),curre
     return messages
 
 @router.get("/{room_id}",response_model=list[MessageResponse],status_code=status.HTTP_200_OK)
-async def get_messages_by_sender_name(room_id:UUID,name: str,db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user), limit: int = Query(0,ge=1,le=100),offset: int = Query(0, ge=0)):
+async def get_messages_by_sender_name(room_id:UUID,name: str,db: AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user), limit: int = Query(20,ge=1,le=100),offset: int = Query(0, ge=0)):
     membership = await get_membership(db,room_id,current_user.id)
     if not membership:
         logger.warning("Unauthorized message search attempt", extra={"room_id": room_id, "user_id": current_user.id})
@@ -75,7 +75,7 @@ async def get_messages_by_sender_name(room_id:UUID,name: str,db: AsyncSession = 
         return []
     return messages
 @router.get("/{room_id}/{key_word}",status_code=status.HTTP_200_OK,response_model=list[MessageResponse])
-async def search_in_messages(room_id: UUID, key_word: str,db:AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user), limit: int = Query(0, ge=1,le=100),offset: int = Query(0, ge=0)):
+async def search_in_messages(room_id: UUID, key_word: str,db:AsyncSession = Depends(get_db),current_user: User = Depends(get_current_user), limit: int = Query(20, ge=1,le=100),offset: int = Query(0, ge=0)):
     membership = await get_membership(db,room_id,current_user.id)
     if not membership:
         logger.warning("Unauthorized message search attempt", extra={"room_id": room_id, "user_id": current_user.id})
