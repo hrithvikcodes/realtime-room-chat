@@ -23,6 +23,7 @@ class AddRoomMember(BaseModel):
 class UserOut(BaseModel):
     id: UUID
     name: str
+    email: str
     profile_url: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
@@ -30,6 +31,7 @@ class UserOut(BaseModel):
     
 
 class RoomMemberResponse(BaseModel):
+    user_id : UUID
     room_id: UUID
     role: Role
     joined_at: datetime
