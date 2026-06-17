@@ -1,6 +1,6 @@
 # Realtime Room Chat API 🚀
 A fully deployed **FastAPI backend** for realtime, room-based communication with **JWT authentication**.  
-Features include **invite-only room joining**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), **Redis caching** for fast message delivery, and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
+Features include **invite only room joining**, **interactive messaging**, **ImageKit.io** integration for media management (profile pics & chat media), **Redis caching** for fast message delivery, and **Google Gemini 2.5** to generate intelligent chat summaries for new members.
 
 Live URL : https://realtime-room-chat-production.up.railway.app/docs
 
@@ -16,6 +16,8 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 *   **Structured JSON Logging** : Production grade logging across all layers (auth,rooms,messages,Websockets,HTTP middleware) with structured JSON output for easy querying.
 *   **Structured Backend** : Modular architecture with dedicated routers, models, and CRUD layers for scalability.
 *   **Rate limiting** : unauthenticated endpoints (login, signup) are rate limited by IP. authenticated endpoints are rate limited by user ID so VPN bypasses won't work.
+*   **Automated Testing** : **26+** unit and integration tests covering auth, rooms, and messages using pytest with mocked Redis and a real PostgreSQL instance.
+*   **CI/CD Pipeline** : Every push to main automatically spins up fresh PostgreSQL and Redis Containers, runs Alembic migrations, and execute all tests through GitHub Actions.
 
 ## Tech Stack
 * **Framework** : FastAPI
@@ -31,10 +33,15 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 * **Logging** : python-json-logger
 * **Migrations**: alembic
 * **Auth** : JWT + argon2 hashing
+* **Testing** : pytest, pytest-asyncio, httpx
+* **CI/CD** : GitHub Actions
 
 ## 📂 Project Structure
 ```text
 chat/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── migrations/
 │   ├── versions/
 │   └── env.py
@@ -55,9 +62,14 @@ chat/
 │   ├── redis_client.py
 │   ├── security.py
 │   └── websocket_manager.py
+├── tests/
+│   ├── conftest.py
+│   ├── test_user.py
+│   ├── test_room.py
+│   └── test_message.py
 ├── alembic.ini
 ├── Dockerfile
-|-- docker-compose.yml
+├── docker-compose.yml
 ├── railway.toml
 ├── .env.example
 ├── pyproject.toml
@@ -107,6 +119,18 @@ docker-compose exec fastapi uv run alembic upgrade head
 ### 5. Explore the docs
 * **Swagger UI**: http://localhost:8000/docs
 * **ReDoc** : http://localhost:8000/redoc
+
+### Testing
+* The project has a test suite covering authentication, room management, messaging, with Redis mocked and a real PostgreSQL test database for integration level coverage.
+
+* Run the full tests locally inside the container:
+```
+ docker-compose exec fastapi uv run pytest tests/ -v
+```
+### CI/CD
+* A GitHub Actions workflow runs automatically on every push and pull request to   main. It spins up temporary PostgreSQL and Redis service containers, installs    dependencies with uv, applies all Alembic migrations against a fresh database,   and runs the full pytest suite that catching schema or logic regressions         before they reach production.
+* The workflow configuration lives in .github/workflows/ci.yml.
+
 
 Developed by [Hrithvik](https://github.com/hrithvikcodes) ♡
 
