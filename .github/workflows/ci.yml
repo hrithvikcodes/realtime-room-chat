@@ -56,4 +56,8 @@ jobs:
           ALGORITHM: HS256
           ACCESS_TOKEN_EXPIRE_MINUTES: "30"
           REFRESH_TOKEN_EXPIRE_DAYS: "7"
+          IMAGEKIT_PUBLIC_KEY: public_test_key
+          IMAGEKIT_PRIVATE_KEY: private_test_key
+          URL_ENDPOINT: https://ik.imagekit.io/test
+          GOOGLE_API_KEY: test_google_key
         run: uv run pytest tests/ -v 
