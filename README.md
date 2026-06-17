@@ -128,7 +128,7 @@ docker-compose exec fastapi uv run alembic upgrade head
  docker-compose exec fastapi uv run pytest tests/ -v
 ```
 ### CI/CD
-* A GitHub Actions workflow runs automatically on every push and pull request to   main. It spins up temporary PostgreSQL and Redis service containers, installs    dependencies with uv, applies all Alembic migrations against a fresh database,   and runs the full pytest suite that catching schema or logic regressions         before they reach production.
+* A GitHub Actions workflow runs automatically on every push and pull request to   main. It spins up temporary PostgreSQL and Redis service containers, installs    dependencies with uv, applies all Alembic migrations against a fresh database,   and runs the full pytest suite , catching schema or logic regressions            before they reach production.
 * The workflow configuration lives in .github/workflows/ci.yml.
 
 
