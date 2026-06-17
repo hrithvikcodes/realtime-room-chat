@@ -1,4 +1,4 @@
-name : CI
+name: CI
 
 on:
   push:
@@ -21,19 +21,23 @@ jobs:
           - 5432:5432
       redis:
         image: redis:7
-        ports: 
+        ports:
           - 6379:6379
-
-
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
-      
+
       - name: Display Python version
         run: python -c "import sys; print(sys.version)"
-      
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
