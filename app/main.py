@@ -12,6 +12,8 @@ from slowapi import  _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from app.limiter import limiter
 from slowapi.middleware import SlowAPIMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     
@@ -21,6 +23,7 @@ async def lifespan(app: FastAPI):
     await db.engine.dispose()
 
 app = FastAPI(lifespan=lifespan)
+Instrumentator().instrument(app).expose(app)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler) # type: ignore
 app.add_middleware(SlowAPIMiddleware) 
