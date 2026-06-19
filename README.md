@@ -18,6 +18,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 *   **Rate limiting** : unauthenticated endpoints (login, signup) are rate limited by IP. authenticated endpoints are rate limited by user ID so VPN bypasses won't work.
 *   **Automated Testing** : **26+** unit and integration tests covering auth, rooms, and messages using pytest with mocked Redis and a real PostgreSQL instance.
 *   **CI/CD Pipeline** : Every push to main automatically spins up fresh PostgreSQL and Redis Containers, runs Alembic migrations, and execute all tests through GitHub Actions.
+*   **Metrics & Observability**: Integrated with **Prometheus** to collect application performance metrics (request rates, latency, status codes) and **Grafana** dashboards for real time visual monitoring.
 
 ## Tech Stack
 * **Framework** : FastAPI
@@ -35,6 +36,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 * **Auth** : JWT + argon2 hashing
 * **Testing** : pytest, pytest-asyncio, httpx
 * **CI/CD** : GitHub Actions
+* **Monitoring & Observability**: Prometheus + Grafana for tracking API metrics, request latencies, error rates,and system performance. 
 
 ## 📂 Project Structure
 ```text
