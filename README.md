@@ -36,7 +36,7 @@ Live URL : https://realtime-room-chat-production.up.railway.app/docs
 * **Auth** : JWT + argon2 hashing
 * **Testing** : pytest, pytest-asyncio, httpx
 * **CI/CD** : GitHub Actions
-* **Monitoring & Observability**: Prometheus + Grafana for tracking API metrics, request latencies, error rates,and system performance. 
+* **Monitoring & Observability**: Prometheus + Grafana for tracking API metrics, request latencies, error rates and system performance.
 
 ## 📂 Project Structure
 ```text
