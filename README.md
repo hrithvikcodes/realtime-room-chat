@@ -103,7 +103,7 @@ All room endpoints require a valid JWT Bearer Token in the header. Administrativ
 | **POST** | `/room/create_room` | 🔒 JWT | None | ❌ None | Creates a new chat room and designates the creator as `ADMIN`. |
 | **GET** | `/room/my-rooms` | 🔒 JWT | None | ❌ None | Fetches all chat rooms the current user belongs to. |
 | **GET** | `/room/{room_id}/members` | 🔒 JWT | Member | ❌ None | Returns a list of all active participants inside the specified room. |
-| **POST** | `/room/{room_id}/join` | 🔒 JWT | None | 100/min | Joins a room using a required query parameter `invite_code`. |
+| **POST** | `/room/{room_id}/join` | 🔒 JWT | None | 10/min | Joins a room using a required query parameter `invite_code`. |
 | **DELETE**| `/room/{room_id}/leave` | 🔒 JWT | Member | ❌ None | Removes the current user from the specified room membership. |
 | **GET** | `/room/{room_id}/invite` | 🔒 JWT | Member | ❌ None | Retrieves the current active alphanumeric invitation code for the room. |
 | **PUT** | `/room/{room_id}/update-details` | 🔒 JWT | **ADMIN** | ❌ None | Updates the core settings and details of a room. |
