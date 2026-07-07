@@ -133,8 +133,6 @@ All message endpoints require a valid JWT Bearer Token and verify that the reque
 
 ### ⚡ Real-Time WebSockets (`/ws`)
 
-The application establishes persistent, full-duplex TCP connections for instant real-time messaging, utilizing an active in-memory connection tracker (`ConnectionManager`).
-
 | Protocol | Endpoint | Auth Mechanism | Handshake Validation | Description |
 | :--- | :--- | :---: | :---: | :--- |
 | **WS** | `/ws/{room_id}` | `token` (Query Param) | JWT + Room Existence Check | Establishes a live bidirectional chat stream. Parses incoming JSON, commits text messages to PostgreSQL asynchronously, syncs to Redis Cache, and broadcasts payloads to all active socket channels in the room. |
