@@ -4,6 +4,11 @@ Features include **invite only room joining**, **interactive messaging**, **Imag
 
 Live URL : https://realtime-room-chat-production.up.railway.app/docs
 
+## System Architecture
+
+### Current Architecture
+![Current System Design](current_system_design.drawio.png)
+
 ## Key Features
 *   **Real time Messaging** : Bi-directional communication using WebSockets.
 *   **AI Context Summaries** : Powered by **Gemini 2.5** to catch up on missed messages easily.
